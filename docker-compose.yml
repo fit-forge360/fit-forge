@@ -96,36 +96,19 @@ services:
     restart: unless-stopped
 
 
-  aggregator-service:
-    build: ./services/aggregator-service
-    container_name: fitforge-aggregator
-    # No host port binding — API only reachable via nginx inside fitforge-net
-    environment:
-      - PORT=4000
-      - AUTH_URL=http://auth-service:5001
-      - USER_URL=http://user-service:5002
-      - WORKOUT_URL=http://workout-service:5003
-      - NUTRITION_URL=http://nutrition-service:5004
-      - PROGRESS_URL=http://progress-service:5005
-    depends_on:
-      - auth-service
-      - user-service
-      - workout-service
-      - nutrition-service
-      - progress-service
-    networks:
-      - fitforge-net
-    restart: unless-stopped
-
   # ── Frontend ──────────────────────────────────────────────────────────────────
 
   frontend:
     build: ./frontend
     container_name: fitforge-frontend
     ports:
-      - "80:3000"     # Only public-facing port — nginx serves React + proxies /api
+      - "80:3000"     # Only public-facing port — nginx serves React + proxies /api/*
     depends_on:
-      - aggregator-service
+      - auth-service
+      - user-service
+      - workout-service
+      - nutrition-service
+      - progress-service
     networks:
       - fitforge-net
     restart: unless-stopped
