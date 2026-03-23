@@ -1,4 +1,4 @@
-# 🏋️ FitForge — MERN Microservices Fitness Platform
+# 🏋️ FitForge — MERN Microservices Fitness Platform - RNLD
 
 A **learning-focused** microservices application built to practice real-world patterns with MERN stack and Kubernetes.
 
