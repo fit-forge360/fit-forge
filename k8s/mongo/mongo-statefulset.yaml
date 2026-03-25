@@ -1,0 +1,119 @@
+# mongo-statefulset.yaml
+# MongoDB StatefulSet with:
+#   - 3 replicas forming a Replica Set (rs0)
+#   - Root credentials from Secret
+#   - Init script from ConfigMap (creates per-service DB users on first boot, idempotent)
+#   - postStart lifecycle hook on mongo-0 to initialize the replica set
+#   - PVC via volumeClaimTemplates for /data/db
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: default
+spec:
+  serviceName: "mongo-service"   # must match the Headless Service name
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:6.0
+          command:
+            - mongod
+            - "--replSet"
+            - "rs0"
+            - "--bind_ip_all"
+          ports:
+            - containerPort: 27017
+          env:
+            # Root user — created by MongoDB on first boot using these env vars
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-root-secret
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-root-secret
+                  key: MONGO_ROOT_PASSWORD
+          lifecycle:
+            postStart:
+              exec:
+                # Only mongo-0 initiates the replica set.
+                # The script waits for mongod to be ready, then calls rs.initiate()
+                # if the replica set has not been initialized yet.
+                command:
+                  - bash
+                  - -c
+                  - |
+                    # Only run on the first pod
+                    if [[ "$(hostname)" != "mongo-0" ]]; then
+                      exit 0
+                    fi
+
+                    # Wait until mongod is accepting connections
+                    until mongosh --quiet --eval "db.adminCommand('ping').ok" \
+                          --username "$MONGO_INITDB_ROOT_USERNAME" \
+                          --password "$MONGO_INITDB_ROOT_PASSWORD" \
+                          --authenticationDatabase admin 2>/dev/null | grep -q 1; do
+                      echo "Waiting for mongod to be ready..."
+                      sleep 2
+                    done
+
+                    # Initiate replica set only if not already done
+                    mongosh --username "$MONGO_INITDB_ROOT_USERNAME" \
+                            --password "$MONGO_INITDB_ROOT_PASSWORD" \
+                            --authenticationDatabase admin \
+                            --eval '
+                              var status = rs.status();
+                              if (status.ok === 0 && status.code === 94) {
+                                rs.initiate({
+                                  _id: "rs0",
+                                  members: [
+                                    { _id: 0, host: "mongo-0.mongo-service.default.svc.cluster.local:27017" },
+                                    { _id: 1, host: "mongo-1.mongo-service.default.svc.cluster.local:27017" },
+                                    { _id: 2, host: "mongo-2.mongo-service.default.svc.cluster.local:27017" }
+                                  ]
+                                });
+                                print("Replica set initiated.");
+                              } else {
+                                print("Replica set already initialized. Skipping.");
+                              }
+                            '
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "900m"
+          volumeMounts:
+            # Persistent data directory
+            - name: mongo-data
+              mountPath: /data/db
+            # Init script — runs once on first startup to create per-service users
+            - name: mongo-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        # ConfigMap mounted as init script
+        - name: mongo-init
+          configMap:
+            name: mongo-init-script
+
+  # PVC auto-created per pod — named: mongo-data-mongo-0, mongo-data-mongo-1, mongo-data-mongo-2
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+        # storageClassName: standard   # uncomment and set your StorageClass if needed

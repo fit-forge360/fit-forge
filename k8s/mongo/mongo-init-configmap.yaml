@@ -1,0 +1,32 @@
+# mongo-init-configmap.yaml
+# This script runs ONCE on the first startup of the PRIMARY MongoDB pod (mongo-0).
+# It creates a dedicated user for each microservice database.
+# The script is idempotent — it checks if a user already exists before creating it.
+# Mounted into /docker-entrypoint-initdb.d/ inside the container.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+  namespace: default
+data:
+  init.js: |
+    function createUserIfNotExists(dbName, userName, userPwd, roles) {
+      var targetDb = db.getSiblingDB(dbName);
+      var existingUsers = targetDb.getUsers({ filter: { user: userName } });
+      if (existingUsers.users && existingUsers.users.length > 0) {
+        print("User '" + userName + "' already exists in '" + dbName + "'. Skipping.");
+      } else {
+        targetDb.createUser({
+          user: userName,
+          pwd: userPwd,
+          roles: roles
+        });
+        print("Created user '" + userName + "' in '" + dbName + "'.");
+      }
+    }
+
+    createUserIfNotExists('auth_db',      'auth_user',      'AuthPass@3',  [{ role: 'readWrite', db: 'auth_db' }]);
+    createUserIfNotExists('user_db',      'user_user',      'UserPass@3',  [{ role: 'readWrite', db: 'user_db' }]);
+    createUserIfNotExists('workout_db',   'workout_user',   'WorkPass@3',  [{ role: 'readWrite', db: 'workout_db' }]);
+    createUserIfNotExists('nutrition_db', 'nutrition_user', 'NutriPass@3', [{ role: 'readWrite', db: 'nutrition_db' }]);
+    createUserIfNotExists('progress_db',  'progress_user',  'ProgPass@3',  [{ role: 'readWrite', db: 'progress_db' }]);
