@@ -10,7 +10,7 @@ services:
   # ── Data stores ──────────────────────────────────────────────────────────────
 
   mongo:
-    image: mongo:6.0
+    image: mongo:7.0
     container_name: fitforge-mongo
     # No host port binding — only reachable inside fitforge-net
     volumes:
@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     container_name: fitforge-redis
     # No host port binding — only reachable inside fitforge-net
     networks:
@@ -95,6 +95,25 @@ services:
       - fitforge-net
     restart: unless-stopped
 
+
+  # ── AI Agent (Python) ────────────────────────────────────────────────────────
+
+  ai-agent-service:
+    build: ./services/ai-agent-service
+    container_name: fitforge-ai-agent
+    environment:
+      - PORT=5006
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash-lite}
+    depends_on:
+      - auth-service
+      - workout-service
+      - nutrition-service
+      - progress-service
+    networks:
+      - fitforge-net
+    restart: unless-stopped
 
   # ── Frontend ──────────────────────────────────────────────────────────────────
 

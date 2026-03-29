@@ -5,6 +5,7 @@ const navItems = [
   { to: '/workout',   label: 'Workouts',  icon: '💪' },
   { to: '/nutrition', label: 'Nutrition', icon: '🥗' },
   { to: '/progress',  label: 'Progress',  icon: '📊' },
+  { to: '/chat',      label: 'FitBot',    icon: '🤖' },
 ];
 
 export default function Navbar() {

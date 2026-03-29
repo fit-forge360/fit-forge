@@ -12,3 +12,13 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Python (ai-agent-service)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/

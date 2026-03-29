@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: mongo:6.0
+          image: mongo:7.0
           command:
             - mongod
             - "--replSet"

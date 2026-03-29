@@ -1,24 +1,27 @@
-# 🏋️ FitForge — MERN Microservices Fitness Platform
+# 🏋️ FitForge — MERN + Python Microservices Fitness Platform
 
-A **learning-focused** microservices application built to practice real-world patterns with MERN stack and Kubernetes.
+A **learning-focused** microservices application built to practice real-world patterns with a multi-stack architecture (Node.js + Python) and Kubernetes.
 
 ## Services
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| auth-service | 5001 | JWT signup/login |
-| user-service | 5002 | User profiles |
-| workout-service | 5003 | Workout plans |
-| nutrition-service | 5004 | Diet entries |
-| progress-service | 5005 | Progress logs |
-| aggregator-service | 4000 | BFF — React's single API endpoint |
-| frontend | 3000 | React SPA |
+| Service | Port | Stack | Purpose |
+|---------|------|-------|---------|
+| auth-service | 5001 | Node.js | JWT signup / login / verify |
+| user-service | 5002 | Node.js | User profiles |
+| workout-service | 5003 | Node.js | Workout plans |
+| nutrition-service | 5004 | Node.js | Diet / nutrition logs |
+| progress-service | 5005 | Node.js + Redis | Progress & weight tracking |
+| **ai-agent-service** | **5006** | **Python / FastAPI** | **LangChain chatbot (Gemini)** |
+| frontend | 3000 | React + nginx | SPA — proxies all `/api/*` calls |
 
 ## Quick Start (Docker Compose — local)
 
 ```bash
-# 1. Copy env file and set JWT_SECRET
+# 1. Copy env file and fill in secrets
 cp .env.example .env
+# Edit .env:
+#   JWT_SECRET=<long-random-string>
+#   GOOGLE_API_KEY=<your-google-ai-studio-key>
 
 # 2. Build and start everything
 docker-compose up --build
