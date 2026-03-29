@@ -39,8 +39,8 @@ async def fetch_user_context(user_id: str, raw_token: str) -> dict:
     async with httpx.AsyncClient() as client:
         workouts, nutrition, progress = await asyncio.gather(
             _safe_get(client, f"{WORKOUT_URL}/workout/plans/{user_id}", raw_token),
-            _safe_get(client, f"{NUTRITION_URL}/nutrition/logs/{user_id}", raw_token),
-            _safe_get(client, f"{PROGRESS_URL}/progress/{user_id}", raw_token),
+            _safe_get(client, f"{NUTRITION_URL}/nutrition/diet/{user_id}", raw_token),   # ← was /logs/
+            _safe_get(client, f"{PROGRESS_URL}/progress/summary/{user_id}", raw_token),  # ← was /
         )
 
     # ── Summarise to reduce token usage ───────────────────────────────────────
@@ -57,20 +57,28 @@ async def fetch_user_context(user_id: str, raw_token: str) -> dict:
         for w in (workouts if isinstance(workouts, list) else [])
     ]
 
+    # DietEntry fields: mealType, totalCalories, foodItems[{name, calories, proteinG}], date
     nutrition_summary = [
         {
-            "date": n.get("date"),
-            "calories": n.get("totalCalories"),
-            "protein": n.get("totalProtein"),
+            "date": str(n.get("date", "")),
+            "mealType": n.get("mealType"),
+            "totalCalories": n.get("totalCalories"),
+            "foods": [
+                f"{f.get('name')} ({f.get('calories')} kcal, {f.get('proteinG')}g protein)"
+                for f in n.get("foodItems", [])
+            ],
         }
         for n in (nutrition if isinstance(nutrition, list) else [])
-    ][:7]  # last 7 entries max
+    ][:10]  # last 10 meal entries
 
+    # ProgressLog fields: date, weightKg, bodyFatPct, workoutCompleted, exerciseLogs, notes
     progress_summary = [
         {
-            "date": p.get("date"),
-            "weight": p.get("weight"),
-            "note": p.get("note"),
+            "date": str(p.get("date", "")),
+            "weightKg": p.get("weightKg"),
+            "bodyFatPct": p.get("bodyFatPct"),
+            "workoutCompleted": p.get("workoutCompleted"),
+            "notes": p.get("notes"),
         }
         for p in (progress if isinstance(progress, list) else [])
     ][:7]
