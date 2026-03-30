@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fit-forge
+  labels:
+    app.kubernetes.io/part-of: fitforge
+    app.kubernetes.io/managed-by: kubectl
+####
