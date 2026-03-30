@@ -44,6 +44,8 @@ You can view them by looking inside `k8s/mongo/mongodb-secret.yaml` right now.
 ## Step 5: Seal the Secret
 Now we encrypt the secret so it's safe. Run `kubeseal`:
 
+## Install kubeseal using chatgpt.
+
 ```bash
 kubeseal --format yaml \
   --controller-name sealed-secrets-controller \
