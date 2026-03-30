@@ -2,7 +2,7 @@
 .env
 
 # Kubernetes plaintext secrets (kubeseal input) — NEVER commit
-k8s/mongo/mongodb-secret.yaml
+k8s_mern_app/k8s/mongo/mongodb-secret.yaml
 pass_gen.txt
 generate.py
 
