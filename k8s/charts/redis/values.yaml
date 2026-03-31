@@ -1,0 +1,41 @@
+# Default values for redis.
+
+# ────────────────────────────────────────────────────────
+# Redis Configuration
+# ────────────────────────────────────────────────────────
+image:
+  repository: redis
+  pullPolicy: IfNotPresent
+  tag: "7.2-alpine"
+
+
+# ────────────────────────────────────────────────────────
+# Service Configuration
+# ────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  port: 6379
+
+# ────────────────────────────────────────────────────────
+# Resources Configuration
+# ────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# ────────────────────────────────────────────────────────
+# Horizontal Pod Autoscaler (HPA)
+# ────────────────────────────────────────────────────────
+# WARNING: Redis is inherently single-threaded and stateful.
+# Enabling HPA on a standard Deployment creates independent 
+# fragmented caches. Enable only if you understand this!
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: redis
+description: A basic Helm chart for deploying Redis with local dev persistence and optional Horizontal Pod Autoscaler.
+type: application
+version: 1.0.0
+appVersion: "7.2.4"
