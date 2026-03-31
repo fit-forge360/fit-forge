@@ -31,6 +31,7 @@ services:
 
   auth-service:
     build: ./services/auth-service
+    image: aswin018/k8s_mern_app_auth-service:v3
     container_name: fitforge-auth
     environment:
       - PORT=5001
@@ -44,6 +45,7 @@ services:
 
   user-service:
     build: ./services/user-service
+    image: aswin018/k8s_mern_app_user-service:v3
     container_name: fitforge-user
     environment:
       - PORT=5002
@@ -57,6 +59,7 @@ services:
 
   workout-service:
     build: ./services/workout-service
+    image: aswin018/k8s_mern_app_workout-service:v3
     container_name: fitforge-workout
     environment:
       - PORT=5003
@@ -70,6 +73,7 @@ services:
 
   nutrition-service:
     build: ./services/nutrition-service
+    image: aswin018/k8s_mern_app_nutrition-service:v3
     container_name: fitforge-nutrition
     environment:
       - PORT=5004
@@ -82,6 +86,7 @@ services:
 
   progress-service:
     build: ./services/progress-service
+    image: aswin018/k8s_mern_app_progress-service:v3
     container_name: fitforge-progress
     environment:
       - PORT=5005
@@ -100,6 +105,7 @@ services:
 
   ai-agent-service:
     build: ./services/ai-agent-service
+    image: aswin018/k8s_mern_app_ai-agent-service:v5
     container_name: fitforge-ai-agent
     env_file:
       - .env                          # LLM_MODEL (and GOOGLE_API_KEY) come from here
@@ -119,6 +125,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: aswin018/k8s_mern_app_frontend:v3
     container_name: fitforge-frontend
     ports:
       - "80:3000"     # Only public-facing port — nginx serves React + proxies /api/*
