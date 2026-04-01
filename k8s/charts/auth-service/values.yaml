@@ -1,0 +1,29 @@
+# Default values for auth-service.
+
+replicaCount: 1
+
+image:
+  repository: aswin018/k8s_mern_app_auth-service
+  pullPolicy: Always
+  tag: "v3"
+
+# Resources configured for smooth scheduling
+resources:
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+
+service:
+  type: ClusterIP
+  port: 5001
+  targetPort: 5001
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 75

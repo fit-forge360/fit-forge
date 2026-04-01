@@ -1,0 +1,133 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: fitforge-apis
+  namespace: fit-forge
+spec:
+  parentRefs:
+  - name: fitforge-gateway
+  rules:
+  
+  # ── Auth Service ──────────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/auth
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /auth
+    backendRefs:
+    - name: auth-service
+      port: 5001
+
+  # ── User Service ──────────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/user
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /users
+    backendRefs:
+    - name: user-service
+      port: 5002
+
+  # ── Workout Service (Plural Match) ────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/workouts
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /workout
+    backendRefs:
+    - name: workout-service
+      port: 5003
+
+  # ── Workout Service (Singular Match) ──────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/workout
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /workout
+    backendRefs:
+    - name: workout-service
+      port: 5003
+
+  # ── Nutrition Service ─────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/nutrition
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /nutrition
+    backendRefs:
+    - name: nutrition-service
+      port: 5004
+
+  # ── Progress Service ──────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/progress
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /progress
+    backendRefs:
+    - name: progress-service
+      port: 5005
+
+  # ── AI Agent Service ──────────────────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/ai
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: ai-agent-service
+      port: 5006
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: fitforge-frontend
+  namespace: fit-forge
+spec:
+  parentRefs:
+  - name: fitforge-gateway
+  rules:
+  # ── Frontend (Fallback / Root) ───────────────────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: frontend
+      port: 80

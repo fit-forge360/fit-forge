@@ -1,0 +1,28 @@
+# Default values for frontend.
+
+replicaCount: 1
+
+image:
+  repository: aswin018/k8s_mern_app_frontend
+  pullPolicy: Always
+  tag: "v3"  # We will use v3 exactly as is! The ConfigMap overrides the proxy logic.
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 75
