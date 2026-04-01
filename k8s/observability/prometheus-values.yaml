@@ -1,0 +1,38 @@
+# 🚀 OPTIMIZED FOR 3 WORKER NODES
+
+# Disabled - We still don't need complex email alerting yet.
+alertmanager:
+  enabled: false
+
+# Enabled - Critical for tracking CPU/Memory on your new node!
+nodeExporter:
+  enabled: true
+
+# Enabled - Critical for tracking Pod CrashLoops and pending statuses!
+kubeStateMetrics:
+  enabled: true
+
+grafana:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Set default timezone to browser
+  defaultDashboardsTimezone: browser
+
+prometheus:
+  prometheusSpec:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    retention: 2h
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
