@@ -118,6 +118,7 @@ metrics:
 podLabels:
   app.kubernetes.io/part-of: fitforge
   app.kubernetes.io/component: database
+  tier: database
 
 # ── Pod Annotations ──────────────────────────────────────────────────────────
 # Prometheus scrape annotations directly on the pods (redundant with metrics

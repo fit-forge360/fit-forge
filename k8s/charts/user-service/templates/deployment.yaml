@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: user-service
+        tier: backend
     spec:
       containers:
         - name: user-service

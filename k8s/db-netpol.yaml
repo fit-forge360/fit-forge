@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db
+  namespace: fit-forge
+spec:
+  podSelector:
+    matchLabels:
+      tier: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # only pod in fit-forge namespace a with label tier=backend
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: fit-forge
+          podSelector:
+            matchLabels:
+              tier: backend
+      # If you dont mention explicitely, all port will be open
+      ports:
+        - protocol: TCP
+          port: 27017

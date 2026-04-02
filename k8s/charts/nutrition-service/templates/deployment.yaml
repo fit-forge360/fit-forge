@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: nutrition-service
+        tier: backend
     spec:
       containers:
         - name: nutrition-service

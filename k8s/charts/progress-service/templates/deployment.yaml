@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: progress-service
+        tier: backend
     spec:
       containers:
         - name: progress-service

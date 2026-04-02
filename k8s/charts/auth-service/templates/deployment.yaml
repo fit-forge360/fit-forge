@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: auth-service
+        tier: backend
     spec:
       containers:
         - name: auth-service
