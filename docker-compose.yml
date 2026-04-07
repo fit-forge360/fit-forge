@@ -1,8 +1,16 @@
-version: '3.9'
-
 # ─────────────────────────────────────────────────────────────────────────────
-# FitForge — Local Docker Compose
+# FitForge — Docker Compose
 # All services communicate via Docker's internal DNS (service name = hostname)
+#
+# Usage:
+#   docker compose up --build      ← build images then start
+#   docker compose up -d           ← start in background (uses cached images)
+#   docker compose down            ← stop and remove containers
+#
+# Note on build + image:
+#   When both 'build' and 'image' are set, Docker builds from the Dockerfile
+#   and tags the result with the image name. Each Dockerfile uses npm ci with
+#   package-lock.json to ensure reproducible, exact dependency installs.
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
