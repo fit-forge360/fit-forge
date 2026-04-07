@@ -6,13 +6,15 @@ name: CI — Auth Service
 
 on:
   push:
-    branches: [main, develop]
+    branches: 
+      - main-features
     paths:
       - "services/auth-service/**"
       - ".github/workflows/ci-auth-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
-    branches: [main]
+    branches:
+      - main-features
     paths:
       - "services/auth-service/**"
 
