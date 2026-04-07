@@ -1,0 +1,97 @@
+# _ci-template.yml
+# Reusable workflow — called by per-service workflows via workflow_call.
+# Current scope: Checkout → Install deps → Snyk scan
+# (SonarQube, Docker build, and Trivy will be added later)
+
+name: CI Template
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+      service-path:
+        required: true
+        type: string
+      runtime:
+        required: false
+        type: string
+        default: "node"
+      node-version:
+        required: false
+        type: string
+        default: "20"
+      python-version:
+        required: false
+        type: string
+        default: "3.11"
+    secrets:
+      SNYK_TOKEN:
+        required: true
+
+jobs:
+  ci:
+    name: "CI — ${{ inputs.service-name }}"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service-path }}
+
+    steps:
+
+      # ── 1. CHECKOUT ─────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. SETUP RUNTIME ────────────────────────────────────────────────────
+      - name: Setup Node.js
+        if: inputs.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "npm"
+          cache-dependency-path: "${{ inputs.service-path }}/package-lock.json"
+
+      - name: Setup Python
+        if: inputs.runtime == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: "pip"
+
+      # ── 3. INSTALL DEPENDENCIES ─────────────────────────────────────────────
+      - name: Install Node dependencies
+        if: inputs.runtime == 'node'
+        run: npm ci
+
+      - name: Install Python dependencies
+        if: inputs.runtime == 'python'
+        run: pip install -r requirements.txt
+
+      # ── 4. SNYK — Software Composition Analysis (SCA) ───────────────────────
+      # Scans installed dependencies for known CVEs.
+      # || true = report-only mode (won't fail the pipeline).
+      # Remove || true when you're ready to enforce blocking on HIGH/CRITICAL.
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Snyk — Scan dependencies (Node)
+        if: inputs.runtime == 'node'
+        run: snyk test --severity-threshold=high --json > snyk-report.json || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk — Scan dependencies (Python)
+        if: inputs.runtime == 'python'
+        run: snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json > snyk-report.json || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-report-${{ inputs.service-name }}
+          path: ${{ inputs.service-path }}/snyk-report.json
+          retention-days: 14

@@ -1,0 +1,27 @@
+# ci-auth-service.yml
+# Triggers CI for auth-service on push/PR to main or develop.
+# Only runs when files inside services/auth-service/ actually change.
+
+name: CI — Auth Service
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "services/auth-service/**"
+      - ".github/workflows/ci-auth-service.yml"
+      - ".github/workflows/_ci-template.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "services/auth-service/**"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-template.yml
+    with:
+      service-name: auth-service
+      service-path: services/auth-service
+      runtime: node
+      node-version: "20"
+    secrets: inherit
