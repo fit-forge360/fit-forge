@@ -1,7 +1,3 @@
-# ci-auth-service.yml
-# Triggers CI for auth-service on push/PR to main or develop.
-# Only runs when files inside services/auth-service/ actually change.
-
 name: CI — Auth Service
 
 on:
