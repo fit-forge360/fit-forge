@@ -73,6 +73,55 @@ frontend/
 
 ---
 
+## Prerequisites — `package-lock.json` in Every Node Service
+
+> **Why this matters:** `npm ci` — used in both CI and the Dockerfile — requires a `package-lock.json` to exist. Without it, the build fails.
+
+Your services are **applications**, not npm libraries. Lockfiles must be committed to git for:
+
+| Use | Needs lockfile? | Why |
+|---|---|---|
+| Docker build (`npm ci --omit=dev`) | ✅ Yes | Installs exact pinned versions inside the image |
+| CI runner (`npm ci` before Snyk) | ✅ Yes | Snyk scans the resolved `node_modules` on the runner |
+| EC2 / K8s | Indirectly | The Docker image is built from the lockfile — EC2/K8s just runs the image |
+
+### Generating Lockfiles (one-time setup)
+
+If `package-lock.json` is missing from any service, generate it without installing anything:
+
+```bash
+# From repo root — run once per service
+cd services/auth-service      && npm install --package-lock-only && cd ../..
+cd services/user-service      && npm install --package-lock-only && cd ../..
+cd services/workout-service   && npm install --package-lock-only && cd ../..
+cd services/nutrition-service && npm install --package-lock-only && cd ../..
+cd services/progress-service  && npm install --package-lock-only && cd ../..
+cd frontend                   && npm install --package-lock-only && cd ..
+```
+
+Then commit all the generated files:
+
+```bash
+git add services/*/package-lock.json frontend/package-lock.json
+git commit -m "chore: add package-lock.json for reproducible builds"
+git push
+```
+
+### Keeping Lockfiles Up to Date
+
+Whenever you add or update a dependency:
+
+```bash
+cd services/auth-service
+npm install <new-package>       # updates both package.json and package-lock.json
+git add package.json package-lock.json
+git commit -m "chore(auth-service): add <new-package>"
+```
+
+Never commit a `package.json` change without also committing the updated lockfile.
+
+---
+
 ## Phase 1 — Set Up SonarQube on EC2
 
 > **Complete this phase before creating any workflow files.**
@@ -663,7 +712,64 @@ jobs:
 
 ---
 
-## Phase 5 — SonarQube Properties Files
+## Phase 5 — Updated Dockerfiles
+
+All Node service Dockerfiles now copy `package-lock.json` alongside `package.json` and use `npm ci --omit=dev` instead of `npm install --production`. This ensures the Docker build installs the **exact same locked versions** that CI scanned.
+
+### Node services (auth, user, workout, nutrition, progress)
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy lockfile alongside package.json so npm ci can install exact versions
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY src/ ./src/
+
+EXPOSE <PORT>
+
+CMD ["node", "src/index.js"]
+```
+
+### Frontend (multi-stage build)
+
+```dockerfile
+# ── Build stage ─────────────────────────────────────
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy lockfile alongside package.json so npm ci can install exact versions
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# ── Serve stage (nginx) ──────────────────────────────
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 3000
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Why `npm ci` instead of `npm install`?
+
+| Command | Reads lockfile | Modifies lockfile | Deletes existing node_modules | Speed |
+|---|---|---|---|---|
+| `npm install` | Optional | Yes — can update | No | Slower |
+| `npm ci` | Required | Never | Yes — always fresh | Faster in CI/Docker |
+
+`npm ci --omit=dev` skips `devDependencies` (e.g. nodemon) so the production image is smaller.
+
+---
+
+## Phase 6 — SonarQube Properties Files
 
 Create a `sonar-project.properties` file in each service root. SonarQube reads this to know which files to scan.
 
