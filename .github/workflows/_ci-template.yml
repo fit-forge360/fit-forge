@@ -86,7 +86,7 @@ jobs:
 
       - name: Snyk — Scan dependencies (Node)
         if: inputs.runtime == 'node'
-        run: snyk test --severity-threshold=high --json > snyk-report.json || true
+        run: snyk test --severity-threshold=low --json-file-output=snyk-report.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
