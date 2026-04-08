@@ -58,7 +58,7 @@ jobs:
         run: npm ci
 
       - name: Inject vulnerable package (TEST ONLY)
-        if: inputs.runtime == 'node' && false 
+        if: inputs.runtime == 'node' && true 
         run: npm install lodash@4.17.15
 
       - name: Check unused dependencies
@@ -116,7 +116,7 @@ jobs:
           path: ${{ inputs.service-path }}/snyk-report.html
           retention-days: 14
 
-          
+
       # - name: Upload Snyk report
       #   uses: actions/upload-artifact@v4
       #   if: always()
