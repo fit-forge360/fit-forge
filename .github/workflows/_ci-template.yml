@@ -58,7 +58,7 @@ jobs:
         run: npm ci
 
       - name: Inject vulnerable package (TEST ONLY)
-        if: inputs.runtime == 'node' && true 
+        if: inputs.runtime == 'node' && false 
         run: npm install lodash@4.17.15
 
       - name: Check unused dependencies
