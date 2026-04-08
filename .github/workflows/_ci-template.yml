@@ -61,6 +61,16 @@ jobs:
         if: inputs.runtime == 'python'
         run: pip install -r requirements.txt
 
+      - name: Debug — Show current directory
+        run: |
+          echo "Current directory:"
+          pwd
+
+      - name: Debug — List files
+        run: |
+          echo "Listing files:"
+          ls -la
+
       # || true = report-only mode (won't fail the pipeline).
       # Remove || true when you're ready to enforce blocking on HIGH/CRITICAL.
       - name: Setup Snyk CLI
