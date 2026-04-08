@@ -55,7 +55,7 @@ jobs:
 
       - name: Install Node dependencies
         if: inputs.runtime == 'node'
-        run: npm ci
+        run: npm install
 
       - name: Install Python dependencies
         if: inputs.runtime == 'python'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Snyk — Scan dependencies (Node)
         if: inputs.runtime == 'node'
-        run: snyk test --severity-threshold=high --json > snyk-report.json || true
+        run: snyk test --severity-threshold=high --json > snyk-report.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
