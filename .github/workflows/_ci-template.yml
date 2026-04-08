@@ -58,7 +58,7 @@ jobs:
         run: npm ci
 
       - name: Inject vulnerable package (TEST ONLY)
-        if: inputs.runtime == 'node' && false 
+        if: inputs.runtime == 'node' && true 
         run: npm install lodash@4.17.15
 
       - name: Check unused dependencies
@@ -86,7 +86,7 @@ jobs:
 
       - name: Snyk — Scan dependencies (Node)
         if: inputs.runtime == 'node'
-        run: snyk test --severity-threshold=low --json-file-output=snyk-report.json || true
+        run: snyk test --severity-threshold=high --json-file-output=snyk-report.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
