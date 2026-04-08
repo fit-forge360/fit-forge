@@ -90,16 +90,37 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+      - name: Convert Snyk report to HTML
+        if: inputs.runtime == 'node'
+        run: |
+          npm install -g snyk-to-html
+          snyk-to-html -i snyk-report.json -o snyk-report.html
+
       - name: Snyk — Scan dependencies (Python)
         if: inputs.runtime == 'python'
         run: snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json > snyk-report.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Upload Snyk report
+      - name: Convert Snyk report to HTML
+        if: inputs.runtime == 'python'
+        run: |
+          npm install -g snyk-to-html
+          snyk-to-html -i snyk-report.json -o snyk-report.html
+
+      - name: Upload Snyk HTML report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: snyk-report-${{ inputs.service-name }}
-          path: ${{ inputs.service-path }}/snyk-report.json
+          path: ${{ inputs.service-path }}/snyk-report.html
           retention-days: 14
+
+          
+      # - name: Upload Snyk report
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: snyk-report-${{ inputs.service-name }}
+      #     path: ${{ inputs.service-path }}/snyk-report.json
+      #     retention-days: 14
