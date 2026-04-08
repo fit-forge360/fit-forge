@@ -112,3 +112,6 @@ helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   -f k8s/observability/prometheus-values.yaml \
   -n monitoring
 ```
+
+
+#
