@@ -57,6 +57,10 @@ jobs:
         if: inputs.runtime == 'node'
         run: npm ci
 
+      - name: Inject vulnerable package (TEST ONLY)
+        if: inputs.runtime == 'node' && false 
+        run: npm install lodash@4.17.15
+
       - name: Install Python dependencies
         if: inputs.runtime == 'python'
         run: pip install -r requirements.txt
