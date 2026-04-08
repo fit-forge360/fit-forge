@@ -61,6 +61,10 @@ jobs:
         if: inputs.runtime == 'node' && false 
         run: npm install lodash@4.17.15
 
+      - name: Check unused dependencies
+        if: inputs.runtime == 'node'
+        run: npx depcheck || true
+
       - name: Install Python dependencies
         if: inputs.runtime == 'python'
         run: pip install -r requirements.txt
