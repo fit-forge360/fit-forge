@@ -1,0 +1,62 @@
+name: Frontend CI + Docker
+
+on:
+  push:
+    branches:
+      - main   # 🔥 runs after merge
+
+jobs:
+
+  # 🔹 Step 1: Run your CI template
+  ci:
+    uses: ./.github/workflows/_ci-template.yml
+    with:
+      service-name: frontend
+      service-path: frontend
+      runtime: node
+      node-version: "20"
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # 🔹 Step 2: Docker Build & Push (runs AFTER CI success)
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: ci   # 🔥 ensures CI passes first
+
+    steps:
+      # Checkout
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME_P }}
+          password: ${{ secrets.DOCKER_PASSWORD_P }}
+
+      # Generate Tags (PROFESSIONAL VERSIONING)
+      - name: Generate Image Tags
+        id: vars
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "SHA_TAG=frontend-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "VERSION_TAG=v1.${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
+
+      # Build & Push Image
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.DOCKER_USERNAME_P }}/fitforge-frontend:latest
+            ${{ secrets.DOCKER_USERNAME_P }}/fitforge-frontend:${{ steps.vars.outputs.SHA_TAG }}
+            ${{ secrets.DOCKER_USERNAME_P }}/fitforge-frontend:${{ steps.vars.outputs.VERSION_TAG }}
