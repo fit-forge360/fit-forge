@@ -2,7 +2,7 @@ FROM node:20-slim
 
 WORKDIR /app
 
-RUN apk update && apk upgrade
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 # Copy lockfile alongside package.json so npm ci can install exact versions
 COPY package.json package-lock.json ./
