@@ -3,7 +3,7 @@ name: CI-USER-SERVICE
 on:
   pull_requests:
     branches:
-      feature/ci=user-service
+      feature/ci-user-service
   push:
     branches:
       - feature/ci-user-service
