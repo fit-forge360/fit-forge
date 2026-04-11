@@ -2,9 +2,11 @@ name: CI - Nutrition Service
 
 on:
   pull_request:
-    branches: ["develop"]
+    branches:
+      - feature/ci-nutrition-service
   push:
-    branches: ["feature/ci-nutrition-service"]
+    branches:
+      - feature/ci-nutrition-service
     paths:
       - "services/nutrition-service/**"
 
