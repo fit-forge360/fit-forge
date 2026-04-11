@@ -158,10 +158,10 @@ jobs:
       - name: Generate Tag
         id: tag
         run: |
-          if [ "${{ inputs.environment }}" = "develop" ]; then
-            echo "tag=dev-${GITHUB_SHA}" >> $GITHUB_OUTPUT
-          else
+          if [ "${{ inputs.environment }}" = "main" ]; then
             echo "tag=${{ steps.semver.outputs.new_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=dev-${GITHUB_SHA}" >> $GITHUB_OUTPUT
           fi
 
       - name: Validate existing tag
