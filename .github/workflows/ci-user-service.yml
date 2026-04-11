@@ -3,7 +3,7 @@ name: CI — User Service
 on:
   push:
     branches: 
-      - features/trivy-arun
+      - feature/trivy-arun
     paths:
       - "services/user-service/**"
       - ".github/workflows/ci-user-service.yml"
