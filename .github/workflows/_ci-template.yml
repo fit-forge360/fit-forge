@@ -130,9 +130,7 @@ jobs:
         if: always()
         with:
           name: snyk-report-${{ inputs.service-name }}
-          path: |
-            ${{ inputs.service-path }}/snyk-report-node.html
-            ${{ inputs.service-path }}/snyk-report-python.html
+          path: ${{ inputs.service-path }}/snyk-report.html
           retention-days: 14
       
       # #SAST
