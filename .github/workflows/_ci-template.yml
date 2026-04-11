@@ -103,10 +103,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker Image
-        run: docker build \
-               -t fitforge360/${{inputs.service-name}}:${{github.sha}} \
-               -t fitforge360/${{inputs.service-name}}:latest \
-               .
+        run: docker build -t fitforge360/${{inputs.service-name}}:${{github.sha}} -t fitforge360/${{inputs.service-name}}:latest .
           
       - name: Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
