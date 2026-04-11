@@ -1,0 +1,22 @@
+name: CI-USER-SERVICE
+
+on:
+  pull_requests:
+    branches:
+      feature/ci=user-service
+  push:
+    branches:
+      - feature/ci-user-service
+    paths:
+      - "services/user-service/**"
+    
+
+jobs:
+  ci:
+    uses: ".github/workflows/_ci-template.yml"
+    with:
+      service-name: user-service
+      service-path: services/user-service
+      runtime: node
+    secrets: inherit
+  
