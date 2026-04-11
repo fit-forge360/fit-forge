@@ -121,7 +121,7 @@ jobs:
             ${{ inputs.service-path }}/snyk-report-python.html
           retention-days: 14
       
-      SAST
+      #SAST
       - name: Run Sonar Scan
         uses: SonarSource/sonarqube-scan-action@v6
         with:
