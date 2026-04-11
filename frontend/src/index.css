@@ -215,6 +215,23 @@ a:hover { color: var(--accent2); }
   color: var(--text);
   border: 1px solid var(--border);
 }
+.resource-section {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.btn-secondary {
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid #6a5af9;
+  color: #6a5af9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
 .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 .btn-danger {
   background: transparent;
