@@ -15,9 +15,7 @@ jobs:
       service-path: frontend
       runtime: node
       node-version: "20"
-    secrets:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    secrets: inherit
 
   # 🔹 Step 2: Docker Build & Push (runs AFTER CI success)
   docker:
