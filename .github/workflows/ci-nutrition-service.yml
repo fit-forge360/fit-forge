@@ -1,0 +1,18 @@
+me: CI - Nutrition Service
+
+on:
+    push:
+          branches: ["develop"] 
+              paths:
+                      - "services/nutrition-service/**"
+
+              jobs:
+                  ci:
+                        uses: ./.github/workflows/_ci-template.yml
+                            with:
+                                    service-name: nutrition-service
+                                          service-path: ./services/nutrition-service
+                                                runtime: node
+                                                    secrets:
+                                                            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+                                                                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
