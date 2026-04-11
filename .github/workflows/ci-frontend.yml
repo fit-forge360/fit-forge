@@ -3,7 +3,7 @@ name: Frontend CI + Docker
 on:
   push:
     branches:
-      - main   # 🔥 runs after merge
+      - feature/frontend-login-resources 
 
 jobs:
 
