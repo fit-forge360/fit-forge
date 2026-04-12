@@ -18,4 +18,5 @@ jobs:
       service-path: frontend
       runtime: node
       node-version: "20"
+      environment: dev
     secrets: inherit
