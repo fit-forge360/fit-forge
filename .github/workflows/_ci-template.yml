@@ -29,6 +29,8 @@ on:
         required: true
       SONAR_TOKEN:
         required: true
+      SONAR_URL:
+        required: true
       DOCKER_USERNAME_P:
         required: true
       DOCKER_PASSWORD_P:
@@ -104,6 +106,15 @@ jobs:
       - name: Convert Snyk report to HTML(python)
         if: inputs.runtime == 'python'
         run: snyk-to-html -i snyk-report.json -o snyk-report.html
+
+      # SAST
+      - name: Run Sonar Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: ${{ inputs.service-path }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
 
       - name: Upload Snyk HTML report
         uses: actions/upload-artifact@v4
@@ -188,6 +199,27 @@ jobs:
       - name: Build Docker Image
         if: steps.image_check.outputs.exists != 'true'
         run: docker build -t ${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} .
+
+      - name: Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        if: steps.image_check.outputs.exists != 'true'
+        with: 
+          image-ref: '${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
+          format: 'table'
+          output: 'trivy-report.txt'
+          scan-type: 'image'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        if: always() && steps.image_check.outputs.exists != 'true'
+        with:
+          name: trivy-${{ inputs.service-name }}
+          path: trivy-report.txt
+          retention-days: 14
 
       - name: Push Docker Image
         if: steps.image_check.outputs.exists != 'true' && github.event_name != 'pull_request'
