@@ -3,9 +3,8 @@ name: CI — Auth Service
 on:
   push:
     branches: 
-      - feature/ci-image-build
-      # - develop
-      # - main
+      - develop
+      - main
     paths:
       - "services/auth-service/**"
       - ".github/workflows/ci-auth-service.yml"

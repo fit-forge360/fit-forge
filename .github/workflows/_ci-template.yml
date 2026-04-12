@@ -31,9 +31,9 @@ on:
         required: true
       SONAR_URL:
         required: true
-      DOCKER_USERNAME_P:
+      DOCKER_USERNAME:
         required: true
-      DOCKER_PASSWORD_P:
+      DOCKER_PASSWORD:
         required: true
 
 jobs:
@@ -81,6 +81,7 @@ jobs:
         if: inputs.runtime == 'python'
         run: pip install -r requirements.txt
 
+      #SCA
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
 
@@ -185,12 +186,12 @@ jobs:
 
       - name: Login to Docker
         run: |
-          echo "${{ secrets.DOCKER_PASSWORD_P }}" | docker login -u "${{ secrets.DOCKER_USERNAME_P }}" --password-stdin
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Check Docker image
         id: image_check
         run: |
-          if docker manifest inspect ${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} > /dev/null 2>&1; then
+          if docker manifest inspect ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -198,13 +199,13 @@ jobs:
 
       - name: Build Docker Image
         if: steps.image_check.outputs.exists != 'true'
-        run: docker build -t ${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} .
 
       - name: Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
         if: steps.image_check.outputs.exists != 'true'
         with: 
-          image-ref: '${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
           format: 'table'
           output: 'trivy-report.txt'
           scan-type: 'image'
@@ -223,7 +224,7 @@ jobs:
 
       - name: Push Docker Image
         if: steps.image_check.outputs.exists != 'true' && github.event_name != 'pull_request'
-        run: docker push ${{ secrets.DOCKER_USERNAME_P }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}
 
       # CREATE TAG (ONLY IF NOT EXISTS)
       - name: Create Git Tag
