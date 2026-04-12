@@ -35,7 +35,7 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
-
+#jobs
 jobs:
   code-quality:
     name: "Code Quality - ${{ inputs.service-name }}"
