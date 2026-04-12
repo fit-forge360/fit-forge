@@ -10,7 +10,7 @@ on:
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      - main
+      - feature/ci-workout-service
     paths:
       - "services/workout-service/**"
 
@@ -24,4 +24,4 @@ jobs:
       node-version: "20"
     secrets: inherit
 
-    #33r
+    #33rgit
