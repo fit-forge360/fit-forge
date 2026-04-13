@@ -154,9 +154,6 @@ jobs:
     if: |
       always() &&
       (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped')
-    permissions:
-      contents: read
-      security-events: write
     concurrency:
       group: build-publish-${{ inputs.service-name }}-${{ inputs.environment }}
       cancel-in-progress: false
