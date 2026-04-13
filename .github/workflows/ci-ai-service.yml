@@ -21,6 +21,9 @@ name: CI — Ai Agent Service
 #       - ".github/workflows/_ci-template.yml"
 
 on: 
+  push:
+    branches: 
+      - feature/ci-ai-service
   workflow_dispatch:
 
 jobs:
