@@ -258,7 +258,7 @@ jobs:
         if: always() && steps.image_check.outputs.exists != 'true'
         with:
           name: trivy-${{ inputs.service-name }}
-          path: trivy-report.txt
+          path: ${{ inputs.service-path }}/trivy-report.txt
           retention-days: 14
 
       - name: Check Trivy for High or Critical Vulnerabilities
