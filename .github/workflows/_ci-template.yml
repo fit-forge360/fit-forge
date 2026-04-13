@@ -277,28 +277,32 @@ jobs:
       - name: Send Trivy Alert (Brevo)
         if: steps.trivy-check.outputs.critical_found == 'true'
         run: |
-          REPORT_BASE64=$(base64 -w 0 "${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt")
+          REPORT_FILE="${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt"
+          REPORT_BASE64=$(base64 -w 0 "$REPORT_FILE")
+          
+          # Write payload to temp file to avoid "Argument list too long"
+          cat > /tmp/brevo-payload.json << EOF
+          {
+            "sender": {
+              "name": "CI Pipeline",
+              "email": "fitforge360.in@gmail.com"
+            },
+            "to": [{ "email": "fitforge360.in@gmail.com" }],
+            "subject": "🚨 Trivy Vulnerabilities Detected - ${{ inputs.service-name }}",
+            "textContent": "HIGH or CRITICAL vulnerabilities found in ${{ inputs.service-name }}. See attached report.",
+            "attachment": [{
+              "name": "trivy-report-${{ inputs.service-name }}.txt",
+              "content": "$REPORT_BASE64"
+            }]
+          }
+          EOF
 
           curl --request POST \
             --url https://api.brevo.com/v3/smtp/email \
             --header "accept: application/json" \
             --header "api-key: $BREVO_API_KEY" \
             --header "content-type: application/json" \
-            --data "{
-              \"sender\": {
-                \"name\": \"CI Pipeline\",
-                \"email\": \"fitforge360.in@gmail.com\"
-              },
-              \"to\": [{
-                \"email\": \"fitforge360.in@gmail.com\"
-              }],
-              \"subject\": \"🚨 Trivy Vulnerabilities Detected\",
-              \"textContent\": \"HIGH or CRITICAL vulnerabilities found. See attached report.\",
-              \"attachment\": [{
-                \"name\": \"${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt\",
-                \"content\": \"$REPORT_BASE64\"
-              }]
-            }"
+            --data @/tmp/brevo-payload.json
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
 
