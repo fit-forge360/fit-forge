@@ -22,4 +22,5 @@ jobs:
       service-path: services/auth-service
       runtime: node
       node-version: "20"
+      environment: dev
     secrets: inherit
