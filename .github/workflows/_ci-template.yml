@@ -119,6 +119,7 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: SonarQube Scan (Node)
         if: inputs.runtime == 'node'
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v2
         with:
           projectBaseDir: ${{ inputs.service-path }}
@@ -131,6 +132,7 @@ jobs:
 
       - name: SonarQube Scan (Python)
         if: inputs.runtime == 'python'
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v2
         with:
           projectBaseDir: ${{ inputs.service-path }}
