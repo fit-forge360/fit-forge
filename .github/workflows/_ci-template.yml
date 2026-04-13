@@ -237,12 +237,15 @@ jobs:
           fi
 
       - name: Build Docker Image
+        id: build  # ← add an id
         if: steps.image_check.outputs.exists != 'true'
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} .
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }} .
+          echo "built=true" >> $GITHUB_OUTPUT
 
       - name: Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
-        if: steps.image_check.outputs.exists != 'true'
+        if: steps.build.outputs.built == 'true'  # ← only if we actually built
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
           format: 'table'
@@ -255,7 +258,7 @@ jobs:
 
       - name: Upload Trivy Report
         uses: actions/upload-artifact@v4
-        if: always() && steps.image_check.outputs.exists != 'true'
+        if: always() && steps.build.outputs.built == 'true'  # ← same gate
         with:
           name: trivy-${{ inputs.service-name }}
           path: trivy-report.txt
@@ -263,7 +266,7 @@ jobs:
 
       - name: Check Trivy for High or Critical Vulnerabilities
         id: trivy-check
-        if: steps.image_check.outputs.exists != 'true'
+        if: steps.build.outputs.built == 'true'  # ← same gate
         run: |
           if grep -qE "HIGH|CRITICAL" "trivy-report.txt"; then
             echo "critical_found=true" >> $GITHUB_OUTPUT
@@ -298,8 +301,9 @@ jobs:
             }"
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          
       - name: Push Docker Image
-        if: steps.image_check.outputs.exists != 'true' && github.event_name != 'pull_request'
+        if: steps.build.outputs.built == 'true' && github.event_name != 'pull_request'
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}
 
       # CREATE TAG (ONLY IF NOT EXISTS)
