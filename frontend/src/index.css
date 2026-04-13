@@ -190,6 +190,7 @@ a:hover { color: var(--accent2); }
 .form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ─── Buttons ──────────────────────────────────────────────────────────────── */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -204,32 +205,93 @@ a:hover { color: var(--accent2); }
   transition: all var(--transition);
   white-space: nowrap;
 }
+
+/* 🔹 Primary Button (Main Action) */
 .btn-primary {
   background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
   color: #fff;
   box-shadow: 0 4px 16px var(--accent-glow);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px var(--accent-glow); }
-.btn-secondary {
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border);
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px var(--accent-glow);
 }
-.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 🔹 Secondary Button (Subtle Actions like PPT / Architecture) */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 14px;              /* smaller = less importance */
+  font-size: 13px;
+  opacity: 0.9;
+
+  background: rgba(106, 90, 249, 0.08);
+  border: 1px solid rgba(106, 90, 249, 0.4);
+  color: #a78bfa;
+
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #6a5af9, #8b5cf6);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(106, 90, 249, 0.4);
+}
+
+.btn-secondary:active {
+  transform: scale(0.96);
+}
+
+/* 🔹 Danger Button */
 .btn-danger {
   background: transparent;
   color: var(--danger);
-  border: 1px solid rgba(255,77,109,0.3);
+  border: 1px solid rgba(255, 77, 109, 0.3);
 }
-.btn-danger:hover { background: rgba(255,77,109,0.1); }
-.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+.btn-danger:hover {
+  background: rgba(255, 77, 109, 0.1);
+}
+
+/* 🔹 Small Button */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* 🔹 Ghost Button */
 .btn-ghost {
   background: transparent;
   color: var(--text-muted);
   border: none;
 }
-.btn-ghost:hover { color: var(--text); }
 
+.btn-ghost:hover {
+  color: var(--text);
+}
+
+/* 🔹 Resource Section Layout */
+.resource-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* 🔹 Optional Title for Resources */
+.resource-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
 /* ─── List items ───────────────────────────────────────────────────────────── */
 .list-item {
   display: flex;
@@ -337,7 +399,7 @@ a:hover { color: var(--accent2); }
   margin-left: 4px;
   transition: color var(--transition);
 }
-.auth-switch button:hover { color: var(--accent2); }
+.auth-switch button:hover { color: #a78bfa; }
 
 /* ─── Divider ──────────────────────────────────────────────────────────────── */
 .divider { height: 1px; background: var(--border); margin: 28px 0; }
