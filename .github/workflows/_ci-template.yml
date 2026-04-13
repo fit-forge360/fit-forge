@@ -29,7 +29,7 @@ on:
         required: true
       SONAR_TOKEN:
         required: true
-      SONAR_HOST_URL:
+      SONAR_URL:
         required: true
       DOCKER_USERNAME:
         required: true
@@ -128,7 +128,7 @@ jobs:
             -Dsonar.exclusions=**/node_modules/**,**/*.test.js
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_URL: ${{ secrets.SONAR_URL }}
 
       - name: SonarQube Scan (Python)
         if: inputs.runtime == 'python'
