@@ -54,6 +54,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # SAST
+      - name: Run Sonar Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: ${{ inputs.service-path }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+
       - name: Setup Node.js
         if: inputs.runtime == 'node'
         uses: actions/setup-node@v4
@@ -108,15 +117,6 @@ jobs:
         if: inputs.runtime == 'python'
         run: snyk-to-html -i snyk-report.json -o snyk-report.html
 
-      # SAST
-      - name: Run Sonar Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        with:
-          projectBaseDir: ${{ inputs.service-path }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
-
       - name: Upload Snyk HTML report
         uses: actions/upload-artifact@v4
         if: always()
@@ -124,6 +124,45 @@ jobs:
           name: snyk-report-${{ inputs.service-name }}
           path: ${{ inputs.service-path }}/snyk-report.html
           retention-days: 14
+
+      - name: Check for Critical Vulnerabilities
+        id: snyk-check
+        run: |
+          CRITICAL_COUNT=$(jq '[.vulnerabilities[] | select(.severity=="critical")] | length' snyk-report.json)
+          echo "Critical count: $CRITICAL_COUNT"
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "critical_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "critical_found=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Send Email Alert with Report (Brevo)
+        if: steps.snyk-check.outputs.critical_found == 'true'
+        run: |
+          REPORT_BASE64=$(base64 -w 0 snyk-report.html)
+
+          curl --request POST \
+            --url https://api.brevo.com/v3/smtp/email \
+            --header "accept: application/json" \
+            --header "api-key: $BREVO_API_KEY" \
+            --header "content-type: application/json" \
+            --data "{
+              \"sender\": {
+                \"name\": \"CI Pipeline\",
+                \"email\": \"fitforge360.in@gmail.com\"
+              },
+              \"to\": [{
+                \"email\": \"fitforge360.in@gmail.com\"
+              }],
+              \"subject\": \"🚨 Critical Vulnerabilities Detected\",
+              \"textContent\": \"Critical vulnerabilities found. See attached Snyk report.\",
+              \"attachment\": [{
+                \"name\": \"snyk-report.html\",
+                \"content\": \"$REPORT_BASE64\"
+              }]
+            }"
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
 
   build-publish:
     name: "Build & Publish - ${{ inputs.service-name }}"
@@ -222,6 +261,44 @@ jobs:
           path: trivy-report.txt
           retention-days: 14
 
+      - name: Check Trivy for High or Critical Vulnerabilities
+        id: trivy-check
+        if: steps.image_check.outputs.exists != 'true'
+        run: |
+          if grep -qE "HIGH|CRITICAL" trivy-report.txt; then
+            echo "critical_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "critical_found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Trivy Alert (Brevo)
+        if: steps.trivy-check.outputs.found == 'true'
+        run: |
+          REPORT_BASE64=$(base64 -w 0 trivy-report.txt)
+
+          curl --request POST \
+            --url https://api.brevo.com/v3/smtp/email \
+            --header "accept: application/json" \
+            --header "api-key: $BREVO_API_KEY" \
+            --header "content-type: application/json" \
+            --data "{
+              \"sender\": {
+                \"name\": \"CI Pipeline\",
+                \"email\": \"fitforge360.in@gmail.com\"
+              },
+              \"to\": [{
+                \"email\": \"fitforge360.in@gmail.com\"
+              }],
+              \"subject\": \"🚨 Trivy Vulnerabilities Detected\",
+              \"textContent\": \"HIGH or CRITICAL vulnerabilities found. See attached report.\",
+              \"attachment\": [{
+                \"name\": \"trivy-report.txt\",
+                \"content\": \"$REPORT_BASE64\"
+              }]
+            }"
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          
       - name: Push Docker Image
         if: steps.image_check.outputs.exists != 'true' && github.event_name != 'pull_request'
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}
