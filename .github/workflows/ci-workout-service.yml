@@ -1,0 +1,30 @@
+name: CI — Workout Service
+
+on:
+  push:
+    branches: 
+      - develop
+      - main
+    paths:
+      - "services/workout-service/**"
+      - ".github/workflows/ci-workout-service.yml"
+      - ".github/workflows/_ci-template.yml"
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - "services/workout-service/**"
+      - ".github/workflows/ci-workout-service.yml"
+      - ".github/workflows/_ci-template.yml"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-template.yml
+    with:
+      service-name: workout-service
+      service-path: services/workout-service
+      runtime: node
+      node-version: "20"
+      environment: ${{ github.ref_name }}
+    secrets: inherit
