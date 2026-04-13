@@ -246,7 +246,7 @@ jobs:
         with: 
           image-ref: '${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
           format: 'table'
-          output: 'trivy-report.txt'
+          output: '${{ inputs.service-path }}/trivy-report.txt'
           scan-type: 'image'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
