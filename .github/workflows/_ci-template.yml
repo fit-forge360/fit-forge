@@ -246,7 +246,7 @@ jobs:
         with: 
           image-ref: '${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
           format: 'table'
-          output: '${{ inputs.service-path }}/trivy-report.txt'
+          output: 'trivy-report.txt'
           scan-type: 'image'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
@@ -258,14 +258,14 @@ jobs:
         if: always() && steps.image_check.outputs.exists != 'true'
         with:
           name: trivy-${{ inputs.service-name }}
-          path: ${{ inputs.service-path }}/trivy-report.txt
+          path: trivy-report.txt
           retention-days: 14
 
       - name: Check Trivy for High or Critical Vulnerabilities
         id: trivy-check
         if: steps.image_check.outputs.exists != 'true'
         run: |
-          if grep -qE "HIGH|CRITICAL" "${{ inputs.service-path }}/trivy-report.txt"; then
+          if grep -qE "HIGH|CRITICAL" "trivy-report.txt"; then
             echo "critical_found=true" >> $GITHUB_OUTPUT
           else
             echo "critical_found=false" >> $GITHUB_OUTPUT
@@ -274,7 +274,7 @@ jobs:
       - name: Send Trivy Alert (Brevo)
         if: steps.trivy-check.outputs.found == 'true'
         run: |
-          REPORT_BASE64=$(base64 -w 0 "${{ inputs.service-path }}/trivy-report.txt")
+          REPORT_BASE64=$(base64 -w 0 "trivy-report.txt")
 
           curl --request POST \
             --url https://api.brevo.com/v3/smtp/email \
@@ -292,7 +292,7 @@ jobs:
               \"subject\": \"🚨 Trivy Vulnerabilities Detected\",
               \"textContent\": \"HIGH or CRITICAL vulnerabilities found. See attached report.\",
               \"attachment\": [{
-                \"name\": \"${{ inputs.service-path }}/trivy-report.txt\",
+                \"name\": \"trivy-report.txt\",
                 \"content\": \"$REPORT_BASE64\"
               }]
             }"
