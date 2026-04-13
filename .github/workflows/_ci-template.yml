@@ -21,8 +21,20 @@ on:
         required: false
         type: string
         default: "3.11"
+      environments:
+        required: false
+        type: string
+        default: "dev"
     secrets:
       SNYK_TOKEN:
+        required: true
+      SONAR_TOKEN:
+        required: true
+      SONAR_URL:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
         required: true
 
 jobs:
@@ -95,6 +107,82 @@ jobs:
           name: snyk-report-${{ inputs.service-name }}
           path: ${{ inputs.service-path }}/snyk-report.json
           retention-days: 14
+
+        # SAST
+      - name: Run Sonar Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: ${{ inputs.service-path }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+
+      - name: Upload Snyk HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-report-${{ inputs.service-name }}
+          path: ${{ inputs.service-path }}/snyk-report.html
+          retention-days: 14
+
+  build-publish:
+    name: "Build & Publish - ${{ inputs.service-name }}"
+    runs-on: ubuntu-latest
+    needs: [ci]
+    if: always() && needs.ci.result != 'failure' && needs.ci.result != 'cancelled'
+    concurrency:
+      group: build-publish-${{ inputs.service-name }}-${{ inputs.environment }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ inputs.service-path }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      # - name: Calculate Semantic Version (Main Only)
+      #   id: semver
+      #   if: inputs.environment == 'main'
+      #   uses: mathieudutour/github-tag-action@v6.2
+      #   with:
+      #     github_token: ${{ github.token }}
+      #     tag_prefix: ${{ inputs.service-name }}-v
+      #     dry_run: true 
+      #     default_bump: patch
+
+      # - name: Generate Tag
+      #   id: tag
+      #   run: |
+      #     if [ "${{ inputs.environment }}" = "main" ]; then
+      #       echo "tag=${{ steps.semver.outputs.new_tag }}" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "tag=dev-${GITHUB_SHA}" >> $GITHUB_OUTPUT
+      #     fi
+
+      # - name: Validate existing tag
+      #   id: tag_check
+      #   run: |
+      #     TAG=${{ steps.tag.outputs.tag }}
+          
+      #     # Force fetch remote tags to ensure the local index knows about them
+      #     git fetch --tags origin || true
+
+      #     if git rev-parse "$TAG" >/dev/null 2>&1; then
+      #       TAG_COMMIT=$(git rev-list -n 1 "$TAG")
+      #       CURRENT_COMMIT=$(git rev-parse HEAD)
+
+      #       if [ "$TAG_COMMIT" != "$CURRENT_COMMIT" ]; then
+      #         echo "Tag exists but points to different commit!"
+      #         exit 1
+      #       fi
+
+      #       echo "exists=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "exists=false" >> $GITHUB_OUTPUT
+      #     fi
         
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -132,5 +220,3 @@ jobs:
 
 
 
-# docker push fitforge360/${{ inputs.service-name }}:latest
-#  just to rerun
