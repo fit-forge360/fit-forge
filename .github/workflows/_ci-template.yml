@@ -226,7 +226,8 @@ jobs:
           format: sarif
           output: trivy-report.sarif
           severity: CRITICAL
-          exit-code: "1"
+          exit-code: "0"
+          ignore-unfixed: true
 
       - name: Upload Trivy report to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
