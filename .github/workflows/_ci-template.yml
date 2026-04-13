@@ -67,7 +67,6 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: "npm"
-          cache-dependency-path: "${{ inputs.service-path }}/package-lock.json"
 
       - name: Setup Python
         if: inputs.runtime == 'python'
