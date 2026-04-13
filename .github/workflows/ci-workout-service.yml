@@ -1,4 +1,4 @@
-name: CI — Auth Service
+name: CI — Workout Service
 
 on:
   push:
@@ -6,23 +6,24 @@ on:
       - develop
       - main
     paths:
-      - "services/auth-service/**"
-      - ".github/workflows/ci-auth-service.yml"
+      - "services/workout-service/**"
+      - ".github/workflows/ci-workout-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
       - develop
       - main
     paths:
-      - "services/auth-service/**"
-      - ".github/workflows/ci-auth-service.yml"
+      - "services/workout-service/**"
+      - ".github/workflows/ci-workout-service.yml"
       - ".github/workflows/_ci-template.yml"
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
     with:
-      service-name: auth-service
-      service-path: services/auth-service
+      service-name: workout-service
+      service-path: services/workout-service
       runtime: node
       node-version: "20"
       environment: ${{ github.ref_name }}

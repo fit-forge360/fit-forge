@@ -1,4 +1,4 @@
-name: CI — Auth Service
+name: CI - Nutrition Service
 
 on:
   push:
@@ -6,24 +6,26 @@ on:
       - develop
       - main
     paths:
-      - "services/auth-service/**"
-      - ".github/workflows/ci-auth-service.yml"
+      - "services/nutrition-service/**"
+      - ".github/workflows/ci-nutrition-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
       - develop
       - main
     paths:
-      - "services/auth-service/**"
-      - ".github/workflows/ci-auth-service.yml"
+      - "services/nutrition-service/**"
+      - ".github/workflows/ci-nutrition-service.yml"
       - ".github/workflows/_ci-template.yml"
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
     with:
-      service-name: auth-service
-      service-path: services/auth-service
+      service-name: nutrition-service
+      service-path: ./services/nutrition-service
       runtime: node
-      node-version: "20"
       environment: ${{ github.ref_name }}
     secrets: inherit
+
+    ## Updated for develop branch
