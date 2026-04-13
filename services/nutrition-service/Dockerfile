@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy lockfile alongside package.json so npm ci can install exact versions
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 COPY src/ ./src/
 
