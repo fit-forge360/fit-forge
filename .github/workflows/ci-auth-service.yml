@@ -3,16 +3,20 @@ name: CI — Auth Service
 on:
   push:
     branches: 
-      - main-features
+      - develop
+      - main
     paths:
       - "services/auth-service/**"
       - ".github/workflows/ci-auth-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      - main-features
+      - develop
+      - main
     paths:
       - "services/auth-service/**"
+      - ".github/workflows/ci-auth-service.yml"
+      - ".github/workflows/_ci-template.yml"
 
 jobs:
   ci:
@@ -22,4 +26,5 @@ jobs:
       service-path: services/auth-service
       runtime: node
       node-version: "20"
+      environment: ${{ github.ref_name }}
     secrets: inherit
