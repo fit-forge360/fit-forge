@@ -21,23 +21,46 @@ on:
         required: false
         type: string
         default: "3.11"
+      environment:
+        required: true
+        type: string
     secrets:
       SNYK_TOKEN:
         required: true
+      SONAR_TOKEN:
+        required: true
+      SONAR_HOST_URL:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 
 jobs:
-  ci:
-    name: "CI — ${{ inputs.service-name }}"
+  # ─────────────────────────────────────────────────────────────────
+  # Code Quality Checks — runs on PRs
+  # Snyk (SCA) + SonarQube (SAST)
+  # ─────────────────────────────────────────────────────────────────
+  code-quality:
+    name: "Code Quality — ${{ inputs.service-name }}"
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    concurrency:
+      group: code-quality-${{ inputs.service-name }}-${{ inputs.environment }}
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: ${{ inputs.service-path }}
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # ─────────────────────────────────────────────────────────────
+      # Setup runtime environment
+      # ─────────────────────────────────────────────────────────────
       - name: Setup Node.js
         if: inputs.runtime == 'node'
         uses: actions/setup-node@v4
@@ -53,79 +76,192 @@ jobs:
           python-version: ${{ inputs.python-version }}
           cache: "pip"
 
+      # ─────────────────────────────────────────────────────────────
+      # Install dependencies
+      # ─────────────────────────────────────────────────────────────
       - name: Install Node dependencies
         if: inputs.runtime == 'node'
         run: npm ci
-
-      - name: Check unused dependencies(node)
-        if: inputs.runtime == 'node'
-        run: npx depcheck || true
 
       - name: Install Python dependencies
         if: inputs.runtime == 'python'
         run: pip install -r requirements.txt
 
-      # - name: Debug — Show current directory
-      #   run: |
-      #     echo "Current directory:"
-      #     pwd
-
-      # - name: Debug — List files
-      #   run: |
-      #     echo "Listing files:"
-      #     ls -la
-
-      # || true = report-only mode (won't fail the pipeline).
-      # Remove || true when you're ready to enforce blocking on HIGH/CRITICAL.
+      # ─────────────────────────────────────────────────────────────
+      # Snyk — Software Composition Analysis (SCA)
+      # Scans dependencies for known CVEs
+      # ─────────────────────────────────────────────────────────────
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
 
-      - name: Install snyk-to-html
-        run: npm install -g snyk-to-html
-
       - name: Snyk — Scan dependencies (Node)
         if: inputs.runtime == 'node'
-        run: snyk test --severity-threshold=high --json-file-output=snyk-report.json || true
+        run: snyk test --severity-threshold=high --json > snyk-report.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      - name: Convert Snyk report to HTML(node)
-        if: inputs.runtime == 'node'
-        run: snyk-to-html -i snyk-report.json -o snyk-report.html
 
       - name: Snyk — Scan dependencies (Python)
         if: inputs.runtime == 'python'
-        run: snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json-file-output=snyk-report.json || true
+        run: snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json > snyk-report.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Convert Snyk report to HTML(python)
-        if: inputs.runtime == 'python'
-        run: snyk-to-html -i snyk-report.json -o snyk-report.html
-
-      # - name: Upload Snyk report
-      #   uses: actions/upload-artifact@v4
-      #   if: always()
-      #   with:
-      #     name: snyk-report-${{ inputs.service-name }}
-      #     path: ${{ inputs.service-path }}/snyk-report.json
-      #     retention-days: 14
-
-      - name: Upload Snyk HTML report
+      - name: Upload Snyk report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: snyk-report-${{ inputs.service-name }}
-          path: |
-            ${{ inputs.service-path }}/snyk-report-node.html
-            ${{ inputs.service-path }}/snyk-report-python.html
+          path: ${{ inputs.service-path }}/snyk-report.json
           retention-days: 14
-      
-      #SAST
-      - name: Run Sonar Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+
+      # ─────────────────────────────────────────────────────────────
+      # SonarQube — Static Application Security Testing (SAST)
+      # Scans source code for bugs, code smells, security hotspots
+      # ─────────────────────────────────────────────────────────────
+      - name: SonarQube Scan (Node)
+        if: inputs.runtime == 'node'
+        uses: SonarSource/sonarqube-scan-action@v2
         with:
           projectBaseDir: ${{ inputs.service-path }}
+          args: >
+            -Dsonar.sources=src
+            -Dsonar.exclusions=**/node_modules/**,**/*.test.js
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "http://44.222.132.231:9000"
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Scan (Python)
+        if: inputs.runtime == 'python'
+        uses: SonarSource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: ${{ inputs.service-path }}
+          args: >
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/__pycache__/**,**/venv/**
+            -Dsonar.python.version=${{ inputs.python-version }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ─────────────────────────────────────────────────────────────────
+  # Build & Publish — builds Docker image, scans with Trivy, pushes
+  # Runs after code-quality passes (or is skipped on non-PRs)
+  # ─────────────────────────────────────────────────────────────────
+  build-publish:
+    name: "Build & Publish — ${{ inputs.service-name }}"
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: |
+      always() &&
+      (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped')
+    concurrency:
+      group: build-publish-${{ inputs.service-name }}-${{ inputs.environment }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ inputs.service-path }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ─────────────────────────────────────────────────────────────
+      # Generate Docker image tag
+      # Main branch: semantic versioning
+      # Other branches: dev-<commit-sha>
+      # ─────────────────────────────────────────────────────────────
+      - name: Generate Docker tag
+        id: docker-tag
+        run: |
+          if [ "${{ inputs.environment }}" = "main" ]; then
+            # For main: use short commit SHA as version
+            TAG="${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ github.sha }}"
+            TAG_LATEST="${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:latest"
+          else
+            # For dev/staging: use dev-<sha>
+            TAG="${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:dev-${{ github.sha }}"
+            TAG_LATEST=""
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "tag_latest=${TAG_LATEST}" >> $GITHUB_OUTPUT
+
+      # ─────────────────────────────────────────────────────────────
+      # Docker Setup & Login
+      # Buildx enables advanced caching and multi-platform builds
+      # ─────────────────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ─────────────────────────────────────────────────────────────
+      # Build Docker image with caching
+      # load: true puts image in local daemon for Trivy to scan
+      # ─────────────────────────────────────────────────────────────
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.service-path }}
+          push: false
+          load: true
+          tags: ${{ steps.docker-tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ─────────────────────────────────────────────────────────────
+      # Trivy — Container Image Vulnerability Scanning
+      # Scans OS packages and application dependencies
+      # Generates SARIF for GitHub Security tab
+      # ─────────────────────────────────────────────────────────────
+      - name: Trivy — Scan container image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.docker-tag.outputs.tag }}
+          format: sarif
+          output: trivy-report.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload Trivy report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-report.sarif
+          category: trivy-${{ inputs.service-name }}
+
+      # ─────────────────────────────────────────────────────────────
+      # Push Docker image to registry
+      # Only runs if Trivy passed (failed exit-code stops here)
+      # Push with SHA tag and latest tag (if main branch)
+      # ─────────────────────────────────────────────────────────────
+      - name: Push Docker image
+        if: success()
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.service-path }}
+          push: true
+          tags: |
+            ${{ steps.docker-tag.outputs.tag }}
+            ${{ steps.docker-tag.outputs.tag_latest }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ─────────────────────────────────────────────────────────────
+      # Create Git tag (main branch only)
+      # Uses commit SHA as immutable tag
+      # ─────────────────────────────────────────────────────────────
+      - name: Create Git tag (main only)
+        if: success() && inputs.environment == 'main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ inputs.service-name }}-${{ github.sha }}"
+          git push origin "${{ inputs.service-name }}-${{ github.sha }}"
+
+  ## This is a trail run please do not stress out ##
