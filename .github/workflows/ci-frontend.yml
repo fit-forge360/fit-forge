@@ -1,27 +1,28 @@
 name: CI — Frontend
-
 on:
   push:
-    branches:
-      - feature/ci-frontend
+    branches: 
+      - develop
+      - main
     paths:
-      - "frontend/**"
-      - ".github/workflows/ci-frontend.yml"
+      - "services/frontend-service/**"
+      - ".github/workflows/ci-frontend-service.yml"
       - ".github/workflows/_ci-template.yml"
-
   pull_request:
     branches:
       - develop
+      - main
     paths:
-      - "frontend/**"
-
+      - "services/frontend-service/**"
+      - ".github/workflows/ci-frontend-service.yml"
+      - ".github/workflows/_ci-template.yml"
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
     with:
-      service-name: frontend
-      service-path: frontend
+      service-name: frontend-service
+      service-path: services/frontend-service
       runtime: node
       node-version: "20"
-      environment: dev   
+      environment: ${{ github.ref_name }}
     secrets: inherit
