@@ -27,3 +27,5 @@ jobs:
       runtime: node
       environment: ${{ github.ref_name }}
     secrets: inherit
+
+    ## Updated for develop branch
