@@ -3,14 +3,16 @@ name: CI - Nutrition Service
 on:
   push:
     branches: 
-      - feature/ci-nutrition-service
+      - develop
+      - main
     paths:
       - "services/nutrition-service/**"
       - ".github/workflows/ci-nutrition-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      - feature/ci-nutrition-service
+      - develop
+      - main
     paths:
       - "services/nutrition-service/**"
       - ".github/workflows/ci-nutrition-service.yml"
