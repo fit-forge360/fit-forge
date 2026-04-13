@@ -249,7 +249,7 @@ jobs:
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}'
           format: 'table'
-          output: 'trivy-report.txt'
+          output: '${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt'
           scan-type: 'image'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
@@ -261,14 +261,14 @@ jobs:
         if: always() && steps.build.outputs.built == 'true'  # ← same gate
         with:
           name: trivy-${{ inputs.service-name }}
-          path: trivy-report.txt
+          path: '${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt'
           retention-days: 14
 
       - name: Check Trivy for High or Critical Vulnerabilities
         id: trivy-check
         if: steps.build.outputs.built == 'true'  # ← same gate
         run: |
-          if grep -qE "HIGH|CRITICAL" "trivy-report.txt"; then
+          if grep -qE "HIGH|CRITICAL" "${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt"; then
             echo "critical_found=true" >> $GITHUB_OUTPUT
           else
             echo "critical_found=false" >> $GITHUB_OUTPUT
@@ -277,7 +277,7 @@ jobs:
       - name: Send Trivy Alert (Brevo)
         if: steps.trivy-check.outputs.critical_found == 'true'
         run: |
-          REPORT_BASE64=$(base64 -w 0 "trivy-report.txt")
+          REPORT_BASE64=$(base64 -w 0 "${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt")
 
           curl --request POST \
             --url https://api.brevo.com/v3/smtp/email \
@@ -295,13 +295,13 @@ jobs:
               \"subject\": \"🚨 Trivy Vulnerabilities Detected\",
               \"textContent\": \"HIGH or CRITICAL vulnerabilities found. See attached report.\",
               \"attachment\": [{
-                \"name\": \"trivy-report.txt\",
+                \"name\": \"${{ github.workspace }}/trivy-report-${{ inputs.service-name }}.txt\",
                 \"content\": \"$REPORT_BASE64\"
               }]
             }"
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          
+
       - name: Push Docker Image
         if: steps.build.outputs.built == 'true' && github.event_name != 'pull_request'
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ steps.tag.outputs.tag }}
