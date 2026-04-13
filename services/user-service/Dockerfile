@@ -13,3 +13,5 @@ COPY src/ ./src/
 EXPOSE 5002
 
 CMD ["node", "src/index.js"]
+
+# ok
