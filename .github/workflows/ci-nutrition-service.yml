@@ -19,4 +19,5 @@ jobs:
       service-name: nutrition-service
       service-path: ./services/nutrition-service
       runtime: node
+      environment: dev
     secrets: inherit
