@@ -128,7 +128,7 @@ jobs:
       - name: Check for Critical Vulnerabilities
         id: snyk-check
         run: |
-          CRITICAL_COUNT=$(jq '[.vulnerabilities[] | select(.severity=="critical")] | length' snyk-report.json)
+          CRITICAL_COUNT=$(jq '[.vulnerabilities[] | select(.severity == "critical" or .severity == "high")] | length' snyk-report.json)
           echo "Critical count: $CRITICAL_COUNT"
           if [ "$CRITICAL_COUNT" -gt 0 ]; then
             echo "critical_found=true" >> $GITHUB_OUTPUT
@@ -265,7 +265,7 @@ jobs:
         id: trivy-check
         if: steps.image_check.outputs.exists != 'true'
         run: |
-          if grep -qE "HIGH|CRITICAL" trivy-report.txt; then
+          if grep -qE "HIGH|CRITICAL" "${{ inputs.service-path }}/trivy-report.txt"; then
             echo "critical_found=true" >> $GITHUB_OUTPUT
           else
             echo "critical_found=false" >> $GITHUB_OUTPUT
