@@ -9,6 +9,8 @@ on:
       - feature/ci-nutrition-service
     paths:
       - "services/nutrition-service/**"
+      - ".github/workflows/ci-nutrition-service.yml"
+      - ".github/workflows/_ci-template.yml"
 
 jobs:
   ci:
