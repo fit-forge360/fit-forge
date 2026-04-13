@@ -10,8 +10,6 @@ on:
     paths:
       - "services/nutrition-service/**"
 
-
-
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
