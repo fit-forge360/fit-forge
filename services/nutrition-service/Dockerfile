@@ -1,10 +1,10 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy lockfile alongside package.json so npm ci can install exact versions
-COPY package.json package-lock.json ./
-RUN npm ci
+# Copy package.json and install dependencies
+COPY package.json ./
+RUN npm install --omit=dev
 
 COPY src/ ./src/
 
