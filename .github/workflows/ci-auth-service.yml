@@ -1,5 +1,5 @@
 name: CI — Auth Service
-#event
+
 on:
   push:
     branches: 
@@ -17,7 +17,6 @@ on:
       - "services/auth-service/**"
       - ".github/workflows/ci-auth-service.yml"
       - ".github/workflows/_ci-template.yml"
-
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
