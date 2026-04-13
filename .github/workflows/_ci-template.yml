@@ -44,7 +44,7 @@ jobs:
   code-quality:
     name: "Code Quality — ${{ inputs.service-name }}"
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     concurrency:
       group: code-quality-${{ inputs.service-name }}-${{ inputs.environment }}
       cancel-in-progress: false
