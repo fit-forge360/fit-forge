@@ -3,7 +3,8 @@ name: CI — Workout Service
 on:
   push:
     branches: 
-      - feature/ci-workout-service
+      - develop
+      - main
     paths:
       - "services/workout-service/**"
       - ".github/workflows/ci-workout-service.yml"
