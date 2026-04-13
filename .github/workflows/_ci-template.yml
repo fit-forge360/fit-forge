@@ -274,7 +274,7 @@ jobs:
       - name: Send Trivy Alert (Brevo)
         if: steps.trivy-check.outputs.found == 'true'
         run: |
-          REPORT_BASE64=$(base64 -w 0 trivy-report.txt)
+          REPORT_BASE64=$(base64 -w 0 "${{ inputs.service-path }}/trivy-report.txt")
 
           curl --request POST \
             --url https://api.brevo.com/v3/smtp/email \
