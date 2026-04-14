@@ -17,3 +17,4 @@ mongoose
 app.use('/nutrition', nutritionRoutes);
 app.get('/health', (req, res) => res.json({ status: 'OK', service: 'nutrition-service' }));
 app.listen(PORT, () => console.log(`[nutrition-service] Running on port ${PORT}`));
+//
