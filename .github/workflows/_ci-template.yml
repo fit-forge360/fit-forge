@@ -36,6 +36,9 @@ on:
       DOCKER_PASSWORD:
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   code-quality:
     name: "Code Quality - ${{ inputs.service-name }}"
