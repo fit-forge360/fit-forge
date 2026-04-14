@@ -28,8 +28,8 @@ jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
     with:
-      service-name: workout-service
-      service-path: services/workout-service
+      service-name: frontend
+      service-path: frontend
       runtime: node
       node-version: "20"
       environment: ${{ github.ref_name }}
