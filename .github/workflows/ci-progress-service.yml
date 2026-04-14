@@ -1,0 +1,30 @@
+name: CI — Progress Service
+
+on:
+  push:
+    branches: 
+      - develop
+      - main
+    paths:
+      - "services/progress-service/**"
+      - ".github/workflows/ci-progress-service.yml"
+      - ".github/workflows/_ci-template.yml"
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - "services/progress-service/**"
+      - ".github/workflows/ci-progress-service.yml"
+      - ".github/workflows/_ci-template.yml"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-template.yml
+    with:
+      service-name: progress-service
+      service-path: services/progress-service
+      runtime: node
+      node-version: "20"
+      environment: ${{ github.ref_name }}
+    secrets: inherit
