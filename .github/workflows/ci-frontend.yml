@@ -3,18 +3,18 @@ name: CI — Frontend
 on:
   push:
     branches: 
-      # - develop
-      # - main
-      - feature/ci-frontend
+      - develop
+      - main
+      # - feature/ci-frontend
     paths:
       - "frontend/**"
       - ".github/workflows/ci-frontend.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      # - develop
-      # - main
-      - feature/ci-frontend
+      - develop
+      - main
+      # - feature/ci-frontend
     paths:
       - "frontend/**"
       - ".github/workflows/ci-frontend.yml"
@@ -30,4 +30,3 @@ jobs:
       node-version: "20"
       environment: ${{ github.ref_name }}
     secrets: inherit
-  ## Check it 
