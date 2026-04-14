@@ -1,0 +1,32 @@
+name: CI — User Service
+
+on:
+  push:
+    branches: 
+      - develop
+      - main
+      - feature/ci-user-service
+    paths:
+      - "services/user-service/**"
+      - ".github/workflows/ci-user-service.yml"
+      - ".github/workflows/_ci-template.yml"
+  pull_request:
+    branches:
+      - develop
+      - main
+      - feature/ci-user-service
+    paths:
+      - "services/user-service/**"
+      - ".github/workflows/ci-user-service.yml"
+      - ".github/workflows/_ci-template.yml"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-template.yml
+    with:
+      service-name: user-service
+      service-path: services/user-service
+      runtime: node
+      node-version: "20"
+      environment: ${{ github.ref_name }}
+    secrets: inherit
