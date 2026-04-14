@@ -3,16 +3,18 @@ name: CI — Frontend
 on:
   push:
     branches: 
-      - develop
-      - main
+      # - develop
+      # - main
+      - feature/ci-frontend
     paths:
       - "frontend/**"
       - ".github/workflows/ci-frontend.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      - develop
-      - main
+      # - develop
+      # - main
+      - feature/ci-frontend
     paths:
       - "frontend/**"
       - ".github/workflows/ci-frontend.yml"
@@ -22,9 +24,10 @@ jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
     with:
-      service-name: frontend
-      service-path: frontend
+      service-name: workout-service
+      service-path: services/workout-service
       runtime: node
       node-version: "20"
       environment: ${{ github.ref_name }}
     secrets: inherit
+  ## Check it 
