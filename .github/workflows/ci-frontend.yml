@@ -20,6 +20,10 @@ on:
       - ".github/workflows/ci-frontend.yml"
       - ".github/workflows/_ci-template.yml"
 
+# give the workflow permission to write to the repository contents
+permissions:
+  contents: write
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
