@@ -18,6 +18,11 @@ on:
       - ".github/workflows/ci-user-service.yml"
       - ".github/workflows/_ci-template.yml"
 
+# give the workflow permission to write to the repository contents
+permissions:
+  contents: write
+
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
