@@ -20,6 +20,7 @@ on:
       - ".github/workflows/ci-progress-service.yml"
       - ".github/workflows/_ci-template.yml"
 
+# give the workflow permission to write to the repository contents
 permissions:
   contents: write
 

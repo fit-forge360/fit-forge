@@ -18,6 +18,7 @@ on:
       - ".github/workflows/ci-nutrition-service.yml"
       - ".github/workflows/_ci-template.yml"
 
+# give the workflow permission to write to the repository contents
 permissions:
   contents: write
 
