@@ -63,6 +63,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
 
+      # If Quality gate is fails, the job fails !!!
+      - name: Sonar Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        with:
+          scanMetadataReportFile: ${{ inputs.service-path }}/.scannerwork/report-task.txt
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Setup Node.js
         if: inputs.runtime == 'node'
         uses: actions/setup-node@v4
@@ -116,7 +125,6 @@ jobs:
       - name: Convert Snyk report to HTML(python)
         if: inputs.runtime == 'python'
         run: snyk-to-html -i snyk-report.json -o snyk-report.html
-
       - name: Upload Snyk HTML report
         uses: actions/upload-artifact@v4
         if: always()
