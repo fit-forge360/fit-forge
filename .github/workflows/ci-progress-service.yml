@@ -20,6 +20,10 @@ on:
       - ".github/workflows/ci-progress-service.yml"
       - ".github/workflows/_ci-template.yml"
 
+permissions:
+  contents: write
+
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci-template.yml
