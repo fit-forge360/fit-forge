@@ -3,18 +3,18 @@ name: CI — Progress Service
 on:
   push:
     branches: 
-      # - develop
-      # - main
-      - feature/ci-progress-service
+      - develop
+      - main
+      # - feature/ci-progress-service
     paths:
       - "services/progress-service/**"
       - ".github/workflows/ci-progress-service.yml"
       - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
-      # - develop
-      # - main
-      - feature/ci-progress-service
+      - develop
+      - main
+      # - feature/ci-progress-service
     paths:
       - "services/progress-service/**"
       - ".github/workflows/ci-progress-service.yml"
