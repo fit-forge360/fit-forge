@@ -11,6 +11,17 @@ export default function Login() {
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
+  const handleViewArchitecture = () => {
+    window.open("/assets/architecture.png", "_blank");
+  };
+
+  const handleViewPPT = () => {
+  window.open(
+    "https://docs.google.com/presentation/d/1agvdxfPKWsTiHNDWICYU3NybeaYsttO8/preview",
+    "_blank"
+  );
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -30,6 +41,19 @@ export default function Login() {
 
   return (
     <div className="auth-wrapper">
+    {/* 🔥 NEW SECTION (OUTSIDE LOGIN CARD) */}
+    <div className="resource-section">
+      <button className="btn btn-secondary" onClick={handleViewArchitecture}>
+        View Architecture
+      </button>
+
+      <button className="btn btn-secondary" onClick={handleViewPPT}>
+        View PPT
+      </button>
+    </div>
+
+
+
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">
