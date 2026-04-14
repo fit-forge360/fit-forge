@@ -2,16 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN apk update && apk upgrade
+ENV NODE_ENV=production
 
-# Copy lockfile alongside package.json so npm ci can install exact versions
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY src/ ./src/
+COPY src ./src
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
 EXPOSE 5002
 
 CMD ["node", "src/index.js"]
-
-# ok
