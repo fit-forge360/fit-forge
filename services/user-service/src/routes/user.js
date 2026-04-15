@@ -1,6 +1,10 @@
 const express = require('express');
 const Profile = require('../models/Profile');
+const verifyToken = require('../middleware/verifyToken');
 const router = express.Router();
+
+// Protect all routes below with JWT verification
+router.use(verifyToken);
 
 // GET /users/:userId
 router.get('/:userId', async (req, res) => {

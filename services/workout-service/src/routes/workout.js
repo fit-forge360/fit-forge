@@ -1,6 +1,10 @@
 const express = require('express');
 const WorkoutPlan = require('../models/WorkoutPlan');
+const verifyToken = require('../middleware/verifyToken');
 const router = express.Router();
+
+// Protect all routes below with JWT verification
+router.use(verifyToken);
 
 // GET /workout/plans/:userId
 router.get('/plans/:userId', async (req, res) => {

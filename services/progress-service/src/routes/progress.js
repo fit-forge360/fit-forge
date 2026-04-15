@@ -1,6 +1,10 @@
 const express = require('express');
 const ProgressLog = require('../models/ProgressLog');
+const verifyToken = require('../middleware/verifyToken');
 const router = express.Router();
+
+// Protect all routes below with JWT verification
+router.use(verifyToken);
 
 // GET /progress/summary/:userId  — last 10 entries
 router.get('/summary/:userId', async (req, res) => {

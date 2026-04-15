@@ -1,6 +1,10 @@
 const express = require('express');
 const DietEntry = require('../models/DietEntry');
+const verifyToken = require('../middleware/verifyToken');
 const router = express.Router();
+
+// Protect all routes below with JWT verification
+router.use(verifyToken);
 
 // GET /nutrition/diet/:userId
 router.get('/diet/:userId', async (req, res) => {
